@@ -5,67 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Jing Yarong - 专属手势星空</title>
     <style>
-        body { margin: 0; background-color: #050505; color: #fff; overflow: hidden; font-family: sans-serif; }
+        body { margin: 0; background-color: #020205; color: #fff; overflow: hidden; font-family: sans-serif; }
         .input_video { display: none; }
-        #container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
         
+        /* === 新增：浪漫动态星空背景 === */
+        #stars-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .star { position: absolute; background: white; border-radius: 50%; animation: twinkle infinite alternate; }
+        @keyframes twinkle { 0% { opacity: 0.2; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 5px #fff; } }
+
+        /* === 升级：照片卡片呼吸发光 === */
         .photo-card {
             width: 120px; height: 160px;
-            box-shadow: 0px 0px 15px rgba(255, 192, 203, 0.4);
-            border: 2px solid rgba(255, 255, 255, 0.6);
-            border-radius: 8px; overflow: hidden; background-color: #222;
+            box-shadow: 0px 0px 15px rgba(255, 105, 180, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 10px; overflow: hidden; background-color: #222;
+            animation: breathe 3s infinite alternate; /* 呼吸灯特效 */
+        }
+        @keyframes breathe {
+            from { box-shadow: 0 0 10px rgba(255, 182, 193, 0.4); border-color: rgba(255,255,255,0.5); }
+            to { box-shadow: 0 0 25px rgba(255, 105, 180, 0.9); border-color: rgba(255,255,255,1); }
         }
         .photo-card img { width: 100%; height: 100%; object-fit: cover; }
         
+        /* UI 层优化 */
         #ui-layer {
-            position: absolute; top: 10px; left: 10px;
-            color: #ffc0cb; text-shadow: 0 0 10px #ffc0cb;
+            position: absolute; top: 15px; left: 15px;
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px);
+            padding: 10px 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.2);
+            color: #ffc0cb; text-shadow: 0 0 5px #ffc0cb;
             pointer-events: none; z-index: 10;
         }
-        #ui-layer h2 { margin: 5px 0; font-size: 20px; }
-        #ui-layer p { margin: 5px 0; font-size: 14px; }
+        #ui-layer h2 { margin: 0 0 8px 0; font-size: 18px; letter-spacing: 2px; }
+        #ui-layer p { margin: 4px 0; font-size: 12px; color: #eee; text-shadow: none;}
         
         #gesture-alert {
             position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 18px; color: white; background: rgba(255, 192, 203, 0.6);
-            padding: 10px 20px; border-radius: 20px; opacity: 0;
-            transition: opacity 0.3s; pointer-events: none; z-index: 20;
+            font-size: 18px; color: white; background: rgba(255, 105, 180, 0.7);
+            backdrop-filter: blur(10px); padding: 12px 25px; border-radius: 30px; 
+            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20;
+            box-shadow: 0 0 20px rgba(255, 105, 180, 0.5); letter-spacing: 2px;
         }
         
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); z-index: 999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: radial-gradient(circle at center, #2a0815 0%, #000000 100%);
+            z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         #start-btn {
-            padding: 15px 40px; font-size: 18px; font-weight: bold; color: #000;
-            background: linear-gradient(45deg, #ffc0cb, #ffb6c1);
-            border: none; border-radius: 30px; cursor: pointer;
-            box-shadow: 0 0 20px rgba(255, 192, 203, 0.5);
-            animation: pulse 2s infinite;
+            padding: 18px 50px; font-size: 20px; font-weight: bold; color: #fff;
+            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            border: 2px solid #ffb6c1; border-radius: 40px; cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 20, 147, 0.6);
+            animation: pulse 2s infinite; letter-spacing: 2px;
         }
         @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 192, 203, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(255, 192, 203, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 192, 203, 0); }
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 105, 180, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 105, 180, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 105, 180, 0); }
         }
         #error-msg { margin-top: 20px; color: #ff4444; font-size: 14px; text-align: center; max-width: 80%; }
     </style>
 </head>
 <body>
+    <!-- 背景音乐 (请在项目里传一个 bgm.mp3) -->
+    <audio id="bgm" loop>
+        <source src="./bgm.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="stars-bg"></div>
+
     <div id="start-screen">
-        <h1 style="color: #ffc0cb; margin-bottom: 30px; text-align: center;">Jing Yarong 的专属星空</h1>
-        <button id="start-btn">点击开启魔法</button>
+        <h1 style="color: #ffb6c1; margin-bottom: 40px; text-align: center; text-shadow: 0 0 20px #ffb6c1; font-family: 'Georgia', serif;">致 Jing Yarong</h1>
+        <button id="start-btn">触碰星空</button>
         <p id="error-msg"></p>
     </div>
 
     <div id="ui-layer">
-        <h2>生日快乐，Jing Yarong</h2>
-        <p id="status">✨ 等待传感器就绪...</p>
-        <p id="layout-status">当前形态：无垠宇宙</p>
+        <h2>🎂 生日快乐</h2>
+        <p id="status">✨ 等待视觉链接...</p>
+        <p id="layout-status">🌌 形态：无垠宇宙</p>
     </div>
 
-    <div id="gesture-alert">✨ 形态转换中 ✨</div>
+    <div id="gesture-alert">✨ 时光跃迁中 ✨</div>
     <video class="input_video" playsinline webkit-playsinline></video>
     <div id="container"></div>
 
@@ -76,6 +98,19 @@
     <script src="https://unpkg.com/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
     <script>
+        // 生成纯 CSS 星空
+        const starsBg = document.getElementById('stars-bg');
+        for(let i=0; i<150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = star.style.height = (Math.random() * 3 + 1) + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            star.style.animationDelay = Math.random() * 2 + 's';
+            starsBg.appendChild(star);
+        }
+
         const photoData = [];
         const totalPhotos = 40; 
         for (let i = 1; i <= totalPhotos; i++) {
@@ -87,8 +122,6 @@
         const objects = [];
         const targets = { sphere: [], helix: [] }; 
         let currentLayout = 'sphere'; 
-        
-        // 【关键修复】：将 isAnimating 提前声明！
         let isAnimating = false;
 
         init3D();
@@ -96,7 +129,7 @@
 
         function init3D() {
             camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
-            camera.position.z = 2000; 
+            camera.position.z = 1800; // 拉近一点更有冲击力
             scene = new THREE.Scene();
 
             for (let i = 0; i < photoData.length; i++) {
@@ -104,14 +137,15 @@
                 element.className = 'photo-card';
                 const img = document.createElement('img');
                 img.src = photoData[i];
-                img.onerror = function() { this.style.display = 'none'; element.style.background = 'linear-gradient(#441122, #111)'; };
+                img.onerror = function() { this.style.display = 'none'; element.style.background = 'linear-gradient(45deg, #441122, #111)'; };
                 element.appendChild(img);
 
                 const objectCSS = new THREE.CSS3DObject(element);
-                objectCSS.position.set(Math.random() * 2000 - 1000, Math.random() * 2000 - 1000, Math.random() * 2000 - 1000);
+                objectCSS.position.set(Math.random() * 4000 - 2000, Math.random() * 4000 - 2000, Math.random() * 4000 - 2000);
                 scene.add(objectCSS);
                 objects.push(objectCSS);
 
+                // 球体
                 const phi = Math.acos(-1 + (2 * i) / photoData.length);
                 const theta = Math.sqrt(photoData.length * Math.PI) * phi;
                 const objectSphere = new THREE.Object3D();
@@ -119,6 +153,7 @@
                 objectSphere.lookAt(objectSphere.position.clone().multiplyScalar(2));
                 targets.sphere.push(objectSphere);
 
+                // 螺旋
                 const thetaHelix = i * 0.5 + Math.PI;
                 const yHelix = -(photoData.length * 15) + (i * 30);
                 const objectHelix = new THREE.Object3D();
@@ -137,7 +172,7 @@
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
             
-            transform(targets.sphere, 3000);
+            transform(targets.sphere, 4000); // 开场动画加长，更唯美
         }
 
         function transform(targetsArray, duration) {
@@ -163,30 +198,43 @@
         const errorMsg = document.getElementById('error-msg');
         const statusText = document.getElementById('status');
         const videoElement = document.getElementsByClassName('input_video')[0];
+        const bgm = document.getElementById('bgm');
 
         startBtn.addEventListener('click', () => {
-            startBtn.innerText = "正在加载内核...";
+            startBtn.innerText = "正在激活跃迁引擎...";
             startBtn.disabled = true;
 
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            // 尝试播放音乐
+            bgm.play().catch(e => console.log("音乐播放需交互授权"));
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 320, height: 240 } }) // 降低分辨率提速
                 .then(function(stream) {
-                    startScreen.style.display = 'none';
-                    statusText.innerText = "✅ 摄像头已开启，正在启动 AI...";
+                    startScreen.style.opacity = 0;
+                    setTimeout(() => startScreen.style.display = 'none', 1000);
+                    
+                    statusText.innerText = "✅ 视觉链接已建立";
                     videoElement.srcObject = stream;
                     
                     const hands = new Hands({locateFile: (file) => `https://unpkg.com/@mediapipe/hands/${file}`});
-                    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
+                    // === 性能调优：提升移动端灵敏度 ===
+                    hands.setOptions({ 
+                        maxNumHands: 1, 
+                        modelComplexity: 0, // 核心：设为0大幅提升手机端识别帧率
+                        minDetectionConfidence: 0.5, 
+                        minTrackingConfidence: 0.5 
+                    });
 
                     let isPinching = false; 
 
                     hands.onResults(function(results) {
-                        statusText.innerText = "🖐️ 正在追踪你的手势";
+                        statusText.innerText = "🖐️ 正在跟随你的指引";
                         
                         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                             const landmarks = results.multiHandLandmarks[0];
                             
-                            targetRotationY = (landmarks[9].x - 0.5) * Math.PI * 1.5; 
-                            targetRotationX = (landmarks[9].y - 0.5) * Math.PI * 1.5;
+                            // 增大映射范围，稍微动动手就能转更大角度
+                            targetRotationY = (landmarks[9].x - 0.5) * Math.PI * 2.0; 
+                            targetRotationX = (landmarks[9].y - 0.5) * Math.PI * 2.0;
 
                             const thumb = landmarks[4];
                             const index = landmarks[8];
@@ -197,13 +245,13 @@
                                     isPinching = true;
                                     
                                     if (currentLayout === 'sphere') {
-                                        transform(targets.helix, 2000);
+                                        transform(targets.helix, 2500);
                                         currentLayout = 'helix';
-                                        document.getElementById('layout-status').innerText = "当前形态：时光隧道";
+                                        document.getElementById('layout-status').innerText = "🌌 形态：时光隧道";
                                     } else {
-                                        transform(targets.sphere, 2000);
+                                        transform(targets.sphere, 2500);
                                         currentLayout = 'sphere';
-                                        document.getElementById('layout-status').innerText = "当前形态：无垠宇宙";
+                                        document.getElementById('layout-status').innerText = "🌌 形态：无垠宇宙";
                                     }
 
                                     const alertBox = document.getElementById('gesture-alert');
@@ -218,22 +266,23 @@
 
                     const cameraUtils = new Camera(videoElement, {
                         onFrame: async () => { await hands.send({image: videoElement}); },
-                        width: 640, height: 480
+                        width: 320, height: 240
                     });
                     cameraUtils.start();
                 })
                 .catch(function(err) {
-                    startBtn.innerText = "重新尝试";
+                    startBtn.innerText = "重新链接";
                     startBtn.disabled = false;
-                    errorMsg.innerText = "❌ 权限被拒绝或加载超时。\n请在微信右上角选择“在浏览器中打开”，或检查摄像头权限。";
+                    errorMsg.innerText = "❌ 无法获取摄像头。\n请确认允许网页访问相机权限哦。";
                 });
         });
 
         function animate() {
             requestAnimationFrame(animate);
             TWEEN.update();
-            scene.rotation.y += (targetRotationY - scene.rotation.y) * 0.05;
-            scene.rotation.x += (targetRotationX - scene.rotation.x) * 0.05;
+            // === 灵敏度调优：大幅提升阻尼跟随系数 ===
+            scene.rotation.y += (targetRotationY - scene.rotation.y) * 0.15; 
+            scene.rotation.x += (targetRotationX - scene.rotation.x) * 0.15;
             renderer.render(scene, camera);
         }
     </script>
