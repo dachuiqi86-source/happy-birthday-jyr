@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Jing Yarong - 专属手势星空</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #050505;
+            color: #fff;
+            overflow: hidden;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+        .input_video { display: none; }
+        #container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        
+        /* 照片卡片样式 */
+        .photo-card {
+            width: 150px;
+            height: 200px;
+            box-shadow: 0px 0px 20px rgba(255, 192, 203, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #111;
+        }
+        .photo-card img { width: 100%; height: 100%; object-fit: cover; }
+        
+        #ui-layer {
+            position: absolute; top: 20px; left: 20px;
+            color: #ffc0cb; text-shadow: 0 0 10px #ffc0cb;
+            pointer-events: none; z-index: 10;
+        }
+        #gesture-alert {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 24px; color: white; background: rgba(255, 192, 203, 0.5);
+            padding: 15px 30px; border-radius: 30px; opacity: 0;
+            transition: opacity 0.3s; pointer-events: none; z-index: 20;
+        }
+        #error-box {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.8); padding: 20px; border-radius: 10px; z-index: 99; text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="ui-layer">
+        <h2>生日快乐，Jing Yarong</h2>
+        <p>🖐️ 移动手掌控制视角 | 🤏 捏合食指与拇指切换形态</p>
+        <p id="status">正在启动视觉传感器...</p>
+        <p id="layout-status">当前形态：无垠宇宙 (Sphere)</p>
+    </div>
+
+    <!-- 捏合提示框 -->
+    <div id="gesture-alert">✨ 形态转换中 ✨</div>
+
+    <!-- 错误提示弹窗 -->
+    <div id="error-box">
+        <h3 style="margin-top:0;">❌ 摄像头调用失败</h3>
+        <p id="error-msg">未知错误</p>
+    </div>
+
+    <video class="input_video"></video>
+    <div id="container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS3DRenderer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <script>
+        // ==========================================
+        // 1. 照片数据区 (读取 photos 文件夹)
+        // ==========================================
+        const photoData = [];
+        const totalPhotos = 40; // 【注意】：如果你准备了 50 张照片，就把这里的 40 改成 50
+        
+        for (let i = 1; i <= totalPhotos; i++) {
+            // 确保你的照片命名为 1.jpg, 2.jpg... 并且全部放在 photos 文件夹内
+            photoData.push(`./photos/${i}.jpg`);
+        }
+
+        // ==========================================
+        // 2. 3D 场景与形态计算初始化
+        // ==========================================
+        let camera, scene, renderer;
+        let targetRotationX = 0, targetRotationY = 0;
+        
+        const objects = [];
+        const targets = { sphere: [], helix: [] }; 
+        let currentLayout = 'sphere'; 
+
+        init3D();
+        animate();
+
+        function init3D() {
+            camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
+            camera.position.z = 2500;
+            scene = new THREE.Scene();
+
+            for (let i = 0; i < photoData.length; i++) {
+                const element = document.createElement('div');
+                element.className = 'photo-card';
+                const img = document.createElement('img');
+                img.src = photoData[i];
+                // 如果找不到图片，用纯色块代替，防止页面崩溃报错
+                img.onerror = function() { this.style.display = 'none'; element.style.backgroundColor = '#333'; };
+                element.appendChild(img);
+
+                const objectCSS = new THREE.CSS3DObject(element);
+                objectCSS.position.set(0, 0, 0);
+                scene.add(objectCSS);
+                objects.push(objectCSS);
+
+                // 计算 球体 (Sphere) 坐标
+                const phi = Math.acos(-1 + (2 * i) / photoData.length);
+                const theta = Math.sqrt(photoData.length * Math.PI) * phi;
+                const objectSphere = new THREE.Object3D();
+                objectSphere.position.setFromSphericalCoords(800, phi, theta);
+                objectSphere.lookAt(objectSphere.position.clone().multiplyScalar(2));
+                targets.sphere.push(objectSphere);
+
+                // 计算 螺旋 (Helix) 坐标
+                const thetaHelix = i * 0.4 + Math.PI;
+                const yHelix = -(photoData.length * 15) + (i * 30);
+                const objectHelix = new THREE.Object3D();
+                objectHelix.position.setFromCylindricalCoords(800, thetaHelix, yHelix);
+                objectHelix.lookAt(new THREE.Vector3D(objectHelix.position.x * 2, objectHelix.position.y, objectHelix.position.z * 2));
+                targets.helix.push(objectHelix);
+            }
+
+            renderer = new THREE.CSS3DRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            transform(targets.sphere, 2000); // 初始入场动画
+        }
+
+        // ==========================================
+        // 3. 动画执行引擎
+        // ==========================================
+        let isAnimating = false;
+
+        function transform(targetsArray, duration) {
+            isAnimating = true; 
+            TWEEN.removeAll();
+            for (let i = 0; i < objects.length; i++) {
+                const object = objects[i];
+                const target = targetsArray[i];
+
+                new TWEEN.Tween(object.position)
+                    .to({ x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration)
+                    .easing(TWEEN.Easing.Exponential.InOut)
+                    .start();
+
+                new TWEEN.Tween(object.rotation)
+                    .to({ x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration)
+                    .easing(TWEEN.Easing.Exponential.InOut)
+                    .start();
+            }
+            setTimeout(() => { isAnimating = false; }, duration * 2);
+        }
+
+        // ==========================================
+        // 4. 视觉捕捉与手势指令解析 (含权限获取)
+        // ==========================================
+        const videoElement = document.getElementsByClassName('input_video')[0];
+        const statusText = document.getElementById('status');
+        const errorBox = document.getElementById('error-box');
+
+        // 请求摄像头权限
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                statusText.innerText = "✅ 摄像头已授权，启动 AI 模型中...";
+                
+                const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+                hands.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.6,
+                    minTrackingConfidence: 0.6
+                });
+
+                let isPinching = false; 
+
+                hands.onResults(function(results) {
+                    statusText.innerText = "已捕获手部信号 🖐️";
+                    
+                    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                        const landmarks = results.multiHandLandmarks[0];
+                        
+                        // 映射旋转视角
+                        targetRotationY = (landmarks[9].x - 0.5) * Math.PI * 1.5; 
+                        targetRotationX = (landmarks[9].y - 0.5) * Math.PI * 1.5;
+
+                        // 捏合检测
+                        const thumb = landmarks[4];
+                        const index = landmarks[8];
+                        const distance = Math.sqrt(Math.pow(thumb.x - index.x, 2) + Math.pow(thumb.y - index.y, 2));
+
+                        if (distance < 0.05) { 
+                            if (!isPinching && !isAnimating) {
+                                isPinching = true;
+                                
+                                // 切换形态
+                                if (currentLayout === 'sphere') {
+                                    transform(targets.helix, 2000);
+                                    currentLayout = 'helix';
+                                    document.getElementById('layout-status').innerText = "当前形态：时光隧道 (Helix)";
+                                } else {
+                                    transform(targets.sphere, 2000);
+                                    currentLayout = 'sphere';
+                                    document.getElementById('layout-status').innerText = "当前形态：无垠宇宙 (Sphere)";
+                                }
+
+                                const alertBox = document.getElementById('gesture-alert');
+                                alertBox.style.opacity = 1;
+                                setTimeout(() => { alertBox.style.opacity = 0; }, 1500);
+                            }
+                        } else {
+                            isPinching = false; 
+                        }
+                    }
+                });
+
+                const cameraUtils = new Camera(videoElement, {
+                    onFrame: async () => { await hands.send({image: videoElement}); },
+                    width: 640, height: 480
+                });
+                cameraUtils.start();
+            })
+            .catch(function(err) {
+                statusText.innerText = "❌ 摄像头启动失败";
+                errorBox.style.display = 'block';
+                document.getElementById('error-msg').innerText = "请确认浏览器允许访问摄像头。\n错误信息: " + err.message;
+            });
+
+        // ==========================================
+        // 5. 渲染循环
+        // ==========================================
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update();
+            scene.rotation.y += (targetRotationY - scene.rotation.y) * 0.05;
+            scene.rotation.x += (targetRotationX - scene.rotation.x) * 0.05;
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
