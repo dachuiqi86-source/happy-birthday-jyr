@@ -2,101 +2,105 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <!-- 确保手机端比例正确，禁止缩放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Jing Yarong - 专属手势星空</title>
     <style>
-        body {
-            margin: 0;
-            background-color: #050505;
-            color: #fff;
-            overflow: hidden;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        }
+        body { margin: 0; background-color: #050505; color: #fff; overflow: hidden; font-family: sans-serif; }
         .input_video { display: none; }
         #container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
-        /* 照片卡片样式 */
         .photo-card {
-            width: 150px;
-            height: 200px;
-            box-shadow: 0px 0px 20px rgba(255, 192, 203, 0.4);
+            width: 120px; height: 160px; /* 适配手机稍微调小尺寸 */
+            box-shadow: 0px 0px 15px rgba(255, 192, 203, 0.4);
             border: 2px solid rgba(255, 255, 255, 0.6);
-            border-radius: 10px;
-            overflow: hidden;
-            background-color: #111;
+            border-radius: 8px; overflow: hidden; background-color: #222;
         }
         .photo-card img { width: 100%; height: 100%; object-fit: cover; }
         
         #ui-layer {
-            position: absolute; top: 20px; left: 20px;
+            position: absolute; top: 10px; left: 10px;
             color: #ffc0cb; text-shadow: 0 0 10px #ffc0cb;
             pointer-events: none; z-index: 10;
         }
+        #ui-layer h2 { margin: 5px 0; font-size: 20px; }
+        #ui-layer p { margin: 5px 0; font-size: 14px; }
+        
         #gesture-alert {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 24px; color: white; background: rgba(255, 192, 203, 0.5);
-            padding: 15px 30px; border-radius: 30px; opacity: 0;
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 18px; color: white; background: rgba(255, 192, 203, 0.6);
+            padding: 10px 20px; border-radius: 20px; opacity: 0;
             transition: opacity 0.3s; pointer-events: none; z-index: 20;
         }
-        #error-box {
-            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(255, 0, 0, 0.8); padding: 20px; border-radius: 10px; z-index: 99; text-align: center;
+        
+        /* 突破手机限制的启动遮罩层 */
+        #start-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); z-index: 999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
+        #start-btn {
+            padding: 15px 40px; font-size: 18px; font-weight: bold; color: #000;
+            background: linear-gradient(45deg, #ffc0cb, #ffb6c1);
+            border: none; border-radius: 30px; cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 192, 203, 0.5);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 192, 203, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(255, 192, 203, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 192, 203, 0); }
+        }
+        #error-msg { margin-top: 20px; color: #ff4444; font-size: 14px; text-align: center; max-width: 80%; }
     </style>
 </head>
 <body>
+    <!-- 启动点击界面 (必须要有这个点击动作手机才会授权) -->
+    <div id="start-screen">
+        <h1 style="color: #ffc0cb; margin-bottom: 30px; text-align: center;">Jing Yarong 的专属星空</h1>
+        <button id="start-btn">点击开启魔法</button>
+        <p id="error-msg"></p>
+    </div>
+
     <div id="ui-layer">
         <h2>生日快乐，Jing Yarong</h2>
-        <p>🖐️ 移动手掌控制视角 | 🤏 捏合食指与拇指切换形态</p>
-        <p id="status">正在启动视觉传感器...</p>
-        <p id="layout-status">当前形态：无垠宇宙 (Sphere)</p>
+        <p id="status">✨ 等待传感器就绪...</p>
+        <p id="layout-status">当前形态：无垠宇宙</p>
     </div>
 
-    <!-- 捏合提示框 -->
     <div id="gesture-alert">✨ 形态转换中 ✨</div>
-
-    <!-- 错误提示弹窗 -->
-    <div id="error-box">
-        <h3 style="margin-top:0;">❌ 摄像头调用失败</h3>
-        <p id="error-msg">未知错误</p>
-    </div>
-
-    <video class="input_video"></video>
+    <video class="input_video" playsinline webkit-playsinline></video>
     <div id="container"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS3DRenderer.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <!-- 替换为更稳定的 unpkg 节点 -->
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/@tweenjs/tween.js@18.6.4/dist/tween.umd.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/renderers/CSS3DRenderer.js"></script>
+    <script src="https://unpkg.com/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
     <script>
-        // ==========================================
-        // 1. 照片数据区 (读取 photos 文件夹)
-        // ==========================================
+        // 1. 照片数据
         const photoData = [];
-        const totalPhotos = 40; // 【注意】：如果你准备了 50 张照片，就把这里的 40 改成 50
-        
+        const totalPhotos = 40; 
         for (let i = 1; i <= totalPhotos; i++) {
-            // 确保你的照片命名为 1.jpg, 2.jpg... 并且全部放在 photos 文件夹内
+            // 如果你的照片用括号命名了，改为：photoData.push(`./photos/p (${i}).jpg`);
             photoData.push(`./photos/${i}.jpg`);
         }
 
-        // ==========================================
-        // 2. 3D 场景与形态计算初始化
-        // ==========================================
         let camera, scene, renderer;
         let targetRotationX = 0, targetRotationY = 0;
-        
         const objects = [];
         const targets = { sphere: [], helix: [] }; 
         let currentLayout = 'sphere'; 
 
+        // 页面一加载就渲染 3D 场景（此时不调摄像头）
         init3D();
         animate();
 
         function init3D() {
             camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
-            camera.position.z = 2500;
+            camera.position.z = 2000; // 适配手机，把相机往前拉一点
             scene = new THREE.Scene();
 
             for (let i = 0; i < photoData.length; i++) {
@@ -104,28 +108,26 @@
                 element.className = 'photo-card';
                 const img = document.createElement('img');
                 img.src = photoData[i];
-                // 如果找不到图片，用纯色块代替，防止页面崩溃报错
-                img.onerror = function() { this.style.display = 'none'; element.style.backgroundColor = '#333'; };
+                // 防报错：如果图片没找到，显示一个粉色渐变块
+                img.onerror = function() { this.style.display = 'none'; element.style.background = 'linear-gradient(#441122, #111)'; };
                 element.appendChild(img);
 
                 const objectCSS = new THREE.CSS3DObject(element);
-                objectCSS.position.set(0, 0, 0);
+                objectCSS.position.set(Math.random() * 2000 - 1000, Math.random() * 2000 - 1000, Math.random() * 2000 - 1000);
                 scene.add(objectCSS);
                 objects.push(objectCSS);
 
-                // 计算 球体 (Sphere) 坐标
                 const phi = Math.acos(-1 + (2 * i) / photoData.length);
                 const theta = Math.sqrt(photoData.length * Math.PI) * phi;
                 const objectSphere = new THREE.Object3D();
-                objectSphere.position.setFromSphericalCoords(800, phi, theta);
+                objectSphere.position.setFromSphericalCoords(600, phi, theta);
                 objectSphere.lookAt(objectSphere.position.clone().multiplyScalar(2));
                 targets.sphere.push(objectSphere);
 
-                // 计算 螺旋 (Helix) 坐标
-                const thetaHelix = i * 0.4 + Math.PI;
+                const thetaHelix = i * 0.5 + Math.PI;
                 const yHelix = -(photoData.length * 15) + (i * 30);
                 const objectHelix = new THREE.Object3D();
-                objectHelix.position.setFromCylindricalCoords(800, thetaHelix, yHelix);
+                objectHelix.position.setFromCylindricalCoords(600, thetaHelix, yHelix);
                 objectHelix.lookAt(new THREE.Vector3D(objectHelix.position.x * 2, objectHelix.position.y, objectHelix.position.z * 2));
                 targets.helix.push(objectHelix);
             }
@@ -139,15 +141,11 @@
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
-
-            transform(targets.sphere, 2000); // 初始入场动画
+            
+            transform(targets.sphere, 3000);
         }
 
-        // ==========================================
-        // 3. 动画执行引擎
-        // ==========================================
         let isAnimating = false;
-
         function transform(targetsArray, duration) {
             isAnimating = true; 
             TWEEN.removeAll();
@@ -157,94 +155,91 @@
 
                 new TWEEN.Tween(object.position)
                     .to({ x: target.position.x, y: target.position.y, z: target.position.z }, Math.random() * duration + duration)
-                    .easing(TWEEN.Easing.Exponential.InOut)
-                    .start();
+                    .easing(TWEEN.Easing.Exponential.InOut).start();
 
                 new TWEEN.Tween(object.rotation)
                     .to({ x: target.rotation.x, y: target.rotation.y, z: target.rotation.z }, Math.random() * duration + duration)
-                    .easing(TWEEN.Easing.Exponential.InOut)
-                    .start();
+                    .easing(TWEEN.Easing.Exponential.InOut).start();
             }
             setTimeout(() => { isAnimating = false; }, duration * 2);
         }
 
         // ==========================================
-        // 4. 视觉捕捉与手势指令解析 (含权限获取)
+        // 必须由按钮点击触发的摄像头与 AI 逻辑
         // ==========================================
-        const videoElement = document.getElementsByClassName('input_video')[0];
+        const startBtn = document.getElementById('start-btn');
+        const startScreen = document.getElementById('start-screen');
+        const errorMsg = document.getElementById('error-msg');
         const statusText = document.getElementById('status');
-        const errorBox = document.getElementById('error-box');
+        const videoElement = document.getElementsByClassName('input_video')[0];
 
-        // 请求摄像头权限
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(function(stream) {
-                statusText.innerText = "✅ 摄像头已授权，启动 AI 模型中...";
-                
-                const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-                hands.setOptions({
-                    maxNumHands: 1,
-                    modelComplexity: 1,
-                    minDetectionConfidence: 0.6,
-                    minTrackingConfidence: 0.6
-                });
+        startBtn.addEventListener('click', () => {
+            startBtn.innerText = "正在加载内核...";
+            startBtn.disabled = true;
 
-                let isPinching = false; 
-
-                hands.onResults(function(results) {
-                    statusText.innerText = "已捕获手部信号 🖐️";
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                .then(function(stream) {
+                    startScreen.style.display = 'none'; // 隐藏遮罩层
+                    statusText.innerText = "✅ 摄像头已开启，正在启动 AI...";
+                    videoElement.srcObject = stream;
                     
-                    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                        const landmarks = results.multiHandLandmarks[0];
+                    // 注意这里的底层模型下载节点也换成了 unpkg
+                    const hands = new Hands({locateFile: (file) => `https://unpkg.com/@mediapipe/hands/${file}`});
+                    hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
+
+                    let isPinching = false; 
+
+                    hands.onResults(function(results) {
+                        statusText.innerText = "🖐️ 正在追踪你的手势";
                         
-                        // 映射旋转视角
-                        targetRotationY = (landmarks[9].x - 0.5) * Math.PI * 1.5; 
-                        targetRotationX = (landmarks[9].y - 0.5) * Math.PI * 1.5;
+                        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                            const landmarks = results.multiHandLandmarks[0];
+                            
+                            // 手机竖屏时，X 和 Y 轴映射可能需要微调
+                            targetRotationY = (landmarks[9].x - 0.5) * Math.PI * 1.5; 
+                            targetRotationX = (landmarks[9].y - 0.5) * Math.PI * 1.5;
 
-                        // 捏合检测
-                        const thumb = landmarks[4];
-                        const index = landmarks[8];
-                        const distance = Math.sqrt(Math.pow(thumb.x - index.x, 2) + Math.pow(thumb.y - index.y, 2));
+                            const thumb = landmarks[4];
+                            const index = landmarks[8];
+                            const distance = Math.sqrt(Math.pow(thumb.x - index.x, 2) + Math.pow(thumb.y - index.y, 2));
 
-                        if (distance < 0.05) { 
-                            if (!isPinching && !isAnimating) {
-                                isPinching = true;
-                                
-                                // 切换形态
-                                if (currentLayout === 'sphere') {
-                                    transform(targets.helix, 2000);
-                                    currentLayout = 'helix';
-                                    document.getElementById('layout-status').innerText = "当前形态：时光隧道 (Helix)";
-                                } else {
-                                    transform(targets.sphere, 2000);
-                                    currentLayout = 'sphere';
-                                    document.getElementById('layout-status').innerText = "当前形态：无垠宇宙 (Sphere)";
+                            if (distance < 0.05) { 
+                                if (!isPinching && !isAnimating) {
+                                    isPinching = true;
+                                    
+                                    if (currentLayout === 'sphere') {
+                                        transform(targets.helix, 2000);
+                                        currentLayout = 'helix';
+                                        document.getElementById('layout-status').innerText = "当前形态：时光隧道";
+                                    } else {
+                                        transform(targets.sphere, 2000);
+                                        currentLayout = 'sphere';
+                                        document.getElementById('layout-status').innerText = "当前形态：无垠宇宙";
+                                    }
+
+                                    const alertBox = document.getElementById('gesture-alert');
+                                    alertBox.style.opacity = 1;
+                                    setTimeout(() => { alertBox.style.opacity = 0; }, 1500);
                                 }
-
-                                const alertBox = document.getElementById('gesture-alert');
-                                alertBox.style.opacity = 1;
-                                setTimeout(() => { alertBox.style.opacity = 0; }, 1500);
+                            } else {
+                                isPinching = false; 
                             }
-                        } else {
-                            isPinching = false; 
                         }
-                    }
-                });
+                    });
 
-                const cameraUtils = new Camera(videoElement, {
-                    onFrame: async () => { await hands.send({image: videoElement}); },
-                    width: 640, height: 480
+                    const cameraUtils = new Camera(videoElement, {
+                        onFrame: async () => { await hands.send({image: videoElement}); },
+                        width: 640, height: 480
+                    });
+                    cameraUtils.start();
+                })
+                .catch(function(err) {
+                    startBtn.innerText = "重新尝试";
+                    startBtn.disabled = false;
+                    errorMsg.innerText = "❌ 权限被拒绝或加载超时。\n请在微信右上角选择“在系统浏览器中打开”，或检查是否给了摄像头权限。";
                 });
-                cameraUtils.start();
-            })
-            .catch(function(err) {
-                statusText.innerText = "❌ 摄像头启动失败";
-                errorBox.style.display = 'block';
-                document.getElementById('error-msg').innerText = "请确认浏览器允许访问摄像头。\n错误信息: " + err.message;
-            });
+        });
 
-        // ==========================================
-        // 5. 渲染循环
-        // ==========================================
         function animate() {
             requestAnimationFrame(animate);
             TWEEN.update();
