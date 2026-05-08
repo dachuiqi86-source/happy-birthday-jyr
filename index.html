@@ -3,60 +3,76 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Jing Yarong - 专属手势星空</title>
+    <title>Jing Yarong - 24岁专属星空</title>
     <style>
-        body { margin: 0; background-color: #020205; color: #fff; overflow: hidden; font-family: sans-serif; }
+        body { margin: 0; background-color: #000; color: #fff; overflow: hidden; font-family: sans-serif; }
         .input_video { display: none; }
         #container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
         
-        /* === 新增：浪漫动态星空背景 === */
-        #stars-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        /* === 银河星空背景 === */
+        #stars-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; 
+                    background: radial-gradient(circle at center, #1a0b1c 0%, #000000 100%); }
         .star { position: absolute; background: white; border-radius: 50%; animation: twinkle infinite alternate; }
-        @keyframes twinkle { 0% { opacity: 0.2; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 5px #fff; } }
+        @keyframes twinkle { 0% { opacity: 0.1; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.5); box-shadow: 0 0 8px #fff; } }
 
-        /* === 升级：照片卡片呼吸发光 === */
+        /* === 照片卡片样式 === */
         .photo-card {
             width: 120px; height: 160px;
             box-shadow: 0px 0px 15px rgba(255, 105, 180, 0.5);
             border: 2px solid rgba(255, 255, 255, 0.8);
-            border-radius: 10px; overflow: hidden; background-color: #222;
-            animation: breathe 3s infinite alternate; /* 呼吸灯特效 */
+            border-radius: 8px; overflow: hidden; background-color: #111;
+            animation: breathe 3s infinite alternate;
         }
         @keyframes breathe {
             from { box-shadow: 0 0 10px rgba(255, 182, 193, 0.4); border-color: rgba(255,255,255,0.5); }
-            to { box-shadow: 0 0 25px rgba(255, 105, 180, 0.9); border-color: rgba(255,255,255,1); }
+            to { box-shadow: 0 0 25px rgba(138, 43, 226, 0.9); border-color: rgba(255,255,255,1); }
         }
         .photo-card img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* UI 层优化 */
+        /* === 专属 24 岁蛋糕卡片 === */
+        .cake-card {
+            width: 300px; height: 400px;
+            background: rgba(20, 5, 30, 0.8); backdrop-filter: blur(10px);
+            border: 3px solid #ff69b4; border-radius: 20px;
+            box-shadow: 0 0 50px #ff69b4, inset 0 0 30px #8a2be2;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; color: #fff;
+            opacity: 0; /* 初始隐藏，靠动画显示 */
+            transition: opacity 1s; pointer-events: none;
+        }
+        .cake-age { font-size: 100px; font-weight: bold; color: #ffb6c1; text-shadow: 0 0 30px #ffb6c1; margin-bottom: 10px; font-family: 'Georgia', serif;}
+        .cake-icon { font-size: 60px; margin-bottom: 20px; animation: floatUp 2s infinite alternate;}
+        .cake-text { font-size: 24px; letter-spacing: 2px; text-shadow: 0 0 10px #fff; margin-bottom: 15px;}
+        .cake-sig { font-size: 18px; color: #ff69b4; font-style: italic;}
+        @keyframes floatUp { from { transform: translateY(0); } to { transform: translateY(-15px); } }
+
+        /* === UI 层 === */
         #ui-layer {
             position: absolute; top: 15px; left: 15px;
             background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px);
             padding: 10px 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.2);
-            color: #ffc0cb; text-shadow: 0 0 5px #ffc0cb;
-            pointer-events: none; z-index: 10;
+            color: #ffb6c1; pointer-events: none; z-index: 10;
         }
-        #ui-layer h2 { margin: 0 0 8px 0; font-size: 18px; letter-spacing: 2px; }
-        #ui-layer p { margin: 4px 0; font-size: 12px; color: #eee; text-shadow: none;}
+        #ui-layer h2 { margin: 0 0 8px 0; font-size: 18px; text-shadow: 0 0 10px #ffb6c1;}
+        #ui-layer p { margin: 4px 0; font-size: 12px; color: #eee; }
         
         #gesture-alert {
-            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 18px; color: white; background: rgba(255, 105, 180, 0.7);
-            backdrop-filter: blur(10px); padding: 12px 25px; border-radius: 30px; 
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 20px; color: white; background: rgba(138, 43, 226, 0.7);
+            backdrop-filter: blur(10px); padding: 15px 30px; border-radius: 30px; 
             opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20;
-            box-shadow: 0 0 20px rgba(255, 105, 180, 0.5); letter-spacing: 2px;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.8); letter-spacing: 2px;
         }
         
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #2a0815 0%, #000000 100%);
-            z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: #050505; z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         #start-btn {
             padding: 18px 50px; font-size: 20px; font-weight: bold; color: #fff;
-            background: linear-gradient(45deg, #ff69b4, #ff1493);
+            background: linear-gradient(45deg, #ff69b4, #8a2be2);
             border: 2px solid #ffb6c1; border-radius: 40px; cursor: pointer;
-            box-shadow: 0 0 30px rgba(255, 20, 147, 0.6);
+            box-shadow: 0 0 30px rgba(255, 105, 180, 0.6);
             animation: pulse 2s infinite; letter-spacing: 2px;
         }
         @keyframes pulse {
@@ -64,30 +80,24 @@
             70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 105, 180, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 105, 180, 0); }
         }
-        #error-msg { margin-top: 20px; color: #ff4444; font-size: 14px; text-align: center; max-width: 80%; }
     </style>
 </head>
 <body>
-    <!-- 背景音乐 (请在项目里传一个 bgm.mp3) -->
-    <audio id="bgm" loop>
-        <source src="./bgm.mp3" type="audio/mpeg">
-    </audio>
-
+    <audio id="bgm" loop><source src="./bgm.mp3" type="audio/mpeg"></audio>
     <div id="stars-bg"></div>
 
     <div id="start-screen">
-        <h1 style="color: #ffb6c1; margin-bottom: 40px; text-align: center; text-shadow: 0 0 20px #ffb6c1; font-family: 'Georgia', serif;">致 Jing Yarong</h1>
-        <button id="start-btn">触碰星空</button>
-        <p id="error-msg"></p>
+        <h1 style="color: #ffb6c1; margin-bottom: 40px; text-align: center; font-family: 'Georgia', serif;">解锁 24 岁的星空</h1>
+        <button id="start-btn">触碰魔法</button>
     </div>
 
     <div id="ui-layer">
-        <h2>🎂 生日快乐</h2>
-        <p id="status">✨ 等待视觉链接...</p>
-        <p id="layout-status">🌌 形态：无垠宇宙</p>
+        <h2>✨ 生日快乐</h2>
+        <p id="status">⏳ 等待视觉链接...</p>
+        <p id="layout-status">🌌 阶段 1：无垠宇宙</p>
     </div>
 
-    <div id="gesture-alert">✨ 时光跃迁中 ✨</div>
+    <div id="gesture-alert" id="alert-text">✨ 形态跃迁中 ✨</div>
     <video class="input_video" playsinline webkit-playsinline></video>
     <div id="container"></div>
 
@@ -98,9 +108,9 @@
     <script src="https://unpkg.com/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
     <script>
-        // 生成纯 CSS 星空
+        // 生成繁星背景
         const starsBg = document.getElementById('stars-bg');
-        for(let i=0; i<150; i++) {
+        for(let i=0; i<200; i++) {
             const star = document.createElement('div');
             star.className = 'star';
             star.style.width = star.style.height = (Math.random() * 3 + 1) + 'px';
@@ -120,18 +130,25 @@
         let camera, scene, renderer;
         let targetRotationX = 0, targetRotationY = 0;
         const objects = [];
-        const targets = { sphere: [], helix: [] }; 
-        let currentLayout = 'sphere'; 
+        
+        // 四种形态的坐标系
+        const targets = { sphere: [], helix: [], galaxy: [], cakeRing: [] }; 
+        const layoutSequence = ['sphere', 'helix', 'galaxy', 'cakeRing']; // 形态切换顺序
+        let currentLayoutIndex = 0; 
         let isAnimating = false;
+        
+        // 全局变量存储蛋糕 3D 对象
+        let cake3DObject;
 
         init3D();
         animate();
 
         function init3D() {
             camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
-            camera.position.z = 1800; // 拉近一点更有冲击力
+            camera.position.z = 2200; 
             scene = new THREE.Scene();
 
+            // === 1. 生成照片群 ===
             for (let i = 0; i < photoData.length; i++) {
                 const element = document.createElement('div');
                 element.className = 'photo-card';
@@ -145,22 +162,57 @@
                 scene.add(objectCSS);
                 objects.push(objectCSS);
 
-                // 球体
+                // --- 预计算 4 种数学模型 ---
+                // [1] 球体
                 const phi = Math.acos(-1 + (2 * i) / photoData.length);
                 const theta = Math.sqrt(photoData.length * Math.PI) * phi;
-                const objectSphere = new THREE.Object3D();
-                objectSphere.position.setFromSphericalCoords(600, phi, theta);
-                objectSphere.lookAt(objectSphere.position.clone().multiplyScalar(2));
-                targets.sphere.push(objectSphere);
+                const objSphere = new THREE.Object3D();
+                objSphere.position.setFromSphericalCoords(700, phi, theta);
+                objSphere.lookAt(objSphere.position.clone().multiplyScalar(2));
+                targets.sphere.push(objSphere);
 
-                // 螺旋
-                const thetaHelix = i * 0.5 + Math.PI;
+                // [2] 螺旋
+                const thetaHelix = i * 0.4 + Math.PI;
                 const yHelix = -(photoData.length * 15) + (i * 30);
-                const objectHelix = new THREE.Object3D();
-                objectHelix.position.setFromCylindricalCoords(600, thetaHelix, yHelix);
-                objectHelix.lookAt(new THREE.Vector3(objectHelix.position.x * 2, objectHelix.position.y, objectHelix.position.z * 2));
-                targets.helix.push(objectHelix);
+                const objHelix = new THREE.Object3D();
+                objHelix.position.setFromCylindricalCoords(800, thetaHelix, yHelix);
+                objHelix.lookAt(new THREE.Vector3(objHelix.position.x * 2, objHelix.position.y, objHelix.position.z * 2));
+                targets.helix.push(objHelix);
+
+                // [3] 银河漩涡 (Galaxy)
+                const angleGalaxy = i * 0.5; // 旋转角度
+                const radiusGalaxy = 200 + (i * 18); // 半径不断向外扩张
+                const objGalaxy = new THREE.Object3D();
+                objGalaxy.position.x = Math.cos(angleGalaxy) * radiusGalaxy;
+                objGalaxy.position.z = Math.sin(angleGalaxy) * radiusGalaxy;
+                objGalaxy.position.y = (Math.random() - 0.5) * 400; // 星系厚度
+                // 银河里的照片统一朝向前方
+                objGalaxy.rotation.y = angleGalaxy + Math.PI / 2; 
+                targets.galaxy.push(objGalaxy);
+
+                // [4] 蛋糕守护环 (巨大的光环，把中间让给蛋糕)
+                const objRing = new THREE.Object3D();
+                const ringAngle = (i / photoData.length) * Math.PI * 2;
+                objRing.position.x = Math.cos(ringAngle) * 1100;
+                objRing.position.z = Math.sin(ringAngle) * 1100;
+                objRing.position.y = 0;
+                objRing.lookAt(0, 0, 0); // 全部看向中心
+                targets.cakeRing.push(objRing);
             }
+
+            // === 2. 铸造 24 岁中心彩蛋蛋糕 ===
+            const cakeEl = document.createElement('div');
+            cakeEl.className = 'cake-card';
+            cakeEl.id = 'cake-core';
+            cakeEl.innerHTML = `
+                <div class="cake-age">24</div>
+                <div class="cake-icon">🎂</div>
+                <div class="cake-text">Jing Yarong, 生日快乐</div>
+                <div class="cake-sig">—— 爱你的，海龙</div>
+            `;
+            cake3DObject = new THREE.CSS3DObject(cakeEl);
+            cake3DObject.position.set(0, 0, 0);
+            scene.add(cake3DObject);
 
             renderer = new THREE.CSS3DRenderer();
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -172,7 +224,7 @@
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
             
-            transform(targets.sphere, 4000); // 开场动画加长，更唯美
+            transform(targets.sphere, 4000); 
         }
 
         function transform(targetsArray, duration) {
@@ -195,44 +247,33 @@
 
         const startBtn = document.getElementById('start-btn');
         const startScreen = document.getElementById('start-screen');
-        const errorMsg = document.getElementById('error-msg');
         const statusText = document.getElementById('status');
         const videoElement = document.getElementsByClassName('input_video')[0];
-        const bgm = document.getElementById('bgm');
-
+        const alertBox = document.getElementById('gesture-alert');
+        
         startBtn.addEventListener('click', () => {
-            startBtn.innerText = "正在激活跃迁引擎...";
-            startBtn.disabled = true;
+            startBtn.innerText = "启动光学引擎...";
+            document.getElementById('bgm').play().catch(e => console.log("音乐等待中"));
 
-            // 尝试播放音乐
-            bgm.play().catch(e => console.log("音乐播放需交互授权"));
-
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 320, height: 240 } }) // 降低分辨率提速
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 320, height: 240 } })
                 .then(function(stream) {
                     startScreen.style.opacity = 0;
                     setTimeout(() => startScreen.style.display = 'none', 1000);
                     
-                    statusText.innerText = "✅ 视觉链接已建立";
+                    statusText.innerText = "✅ 视觉桥接完成";
                     videoElement.srcObject = stream;
                     
                     const hands = new Hands({locateFile: (file) => `https://unpkg.com/@mediapipe/hands/${file}`});
-                    // === 性能调优：提升移动端灵敏度 ===
-                    hands.setOptions({ 
-                        maxNumHands: 1, 
-                        modelComplexity: 0, // 核心：设为0大幅提升手机端识别帧率
-                        minDetectionConfidence: 0.5, 
-                        minTrackingConfidence: 0.5 
-                    });
+                    hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
 
                     let isPinching = false; 
 
                     hands.onResults(function(results) {
-                        statusText.innerText = "🖐️ 正在跟随你的指引";
+                        statusText.innerText = "🖐️ 尽情用手势探索吧";
                         
                         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                             const landmarks = results.multiHandLandmarks[0];
                             
-                            // 增大映射范围，稍微动动手就能转更大角度
                             targetRotationY = (landmarks[9].x - 0.5) * Math.PI * 2.0; 
                             targetRotationX = (landmarks[9].y - 0.5) * Math.PI * 2.0;
 
@@ -244,19 +285,41 @@
                                 if (!isPinching && !isAnimating) {
                                     isPinching = true;
                                     
-                                    if (currentLayout === 'sphere') {
-                                        transform(targets.helix, 2500);
-                                        currentLayout = 'helix';
-                                        document.getElementById('layout-status').innerText = "🌌 形态：时光隧道";
-                                    } else {
+                                    // 顺序切换四个状态
+                                    currentLayoutIndex = (currentLayoutIndex + 1) % layoutSequence.length;
+                                    const nextLayout = layoutSequence[currentLayoutIndex];
+                                    
+                                    // 根据状态更新 UI 和 蛋糕的显示
+                                    const cakeDom = document.getElementById('cake-core');
+                                    
+                                    if (nextLayout === 'sphere') {
                                         transform(targets.sphere, 2500);
-                                        currentLayout = 'sphere';
-                                        document.getElementById('layout-status').innerText = "🌌 形态：无垠宇宙";
+                                        document.getElementById('layout-status').innerText = "🌌 阶段 1：无垠宇宙";
+                                        alertBox.innerText = "回归原点";
+                                        cakeDom.style.opacity = 0; // 隐藏蛋糕
+                                        
+                                    } else if (nextLayout === 'helix') {
+                                        transform(targets.helix, 2500);
+                                        document.getElementById('layout-status').innerText = "🌌 阶段 2：时光隧道";
+                                        alertBox.innerText = "时光倒流";
+                                        cakeDom.style.opacity = 0;
+                                        
+                                    } else if (nextLayout === 'galaxy') {
+                                        transform(targets.galaxy, 2500);
+                                        document.getElementById('layout-status').innerText = "🌌 阶段 3：浩瀚银河";
+                                        alertBox.innerText = "星系形成";
+                                        cakeDom.style.opacity = 0;
+                                        
+                                    } else if (nextLayout === 'cakeRing') {
+                                        transform(targets.cakeRing, 3000);
+                                        document.getElementById('layout-status').innerText = "🎂 终极彩蛋：24岁降临";
+                                        alertBox.innerText = "✨ 核心解锁 ✨";
+                                        // 星环散开，中心蛋糕卡片霸气亮起！
+                                        setTimeout(() => { cakeDom.style.opacity = 1; }, 1500);
                                     }
 
-                                    const alertBox = document.getElementById('gesture-alert');
                                     alertBox.style.opacity = 1;
-                                    setTimeout(() => { alertBox.style.opacity = 0; }, 1500);
+                                    setTimeout(() => { alertBox.style.opacity = 0; }, 2000);
                                 }
                             } else {
                                 isPinching = false; 
@@ -269,20 +332,18 @@
                         width: 320, height: 240
                     });
                     cameraUtils.start();
-                })
-                .catch(function(err) {
-                    startBtn.innerText = "重新链接";
-                    startBtn.disabled = false;
-                    errorMsg.innerText = "❌ 无法获取摄像头。\n请确认允许网页访问相机权限哦。";
                 });
         });
 
         function animate() {
             requestAnimationFrame(animate);
             TWEEN.update();
-            // === 灵敏度调优：大幅提升阻尼跟随系数 ===
             scene.rotation.y += (targetRotationY - scene.rotation.y) * 0.15; 
             scene.rotation.x += (targetRotationX - scene.rotation.x) * 0.15;
+            
+            // 让中心蛋糕稍微有点自转，更酷炫
+            if(cake3DObject) cake3DObject.rotation.y += 0.01;
+            
             renderer.render(scene, camera);
         }
     </script>
