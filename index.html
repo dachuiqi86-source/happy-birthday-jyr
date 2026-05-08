@@ -2,7 +2,6 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <!-- 确保手机端比例正确，禁止缩放 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Jing Yarong - 专属手势星空</title>
     <style>
@@ -11,7 +10,7 @@
         #container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
         .photo-card {
-            width: 120px; height: 160px; /* 适配手机稍微调小尺寸 */
+            width: 120px; height: 160px;
             box-shadow: 0px 0px 15px rgba(255, 192, 203, 0.4);
             border: 2px solid rgba(255, 255, 255, 0.6);
             border-radius: 8px; overflow: hidden; background-color: #222;
@@ -33,7 +32,6 @@
             transition: opacity 0.3s; pointer-events: none; z-index: 20;
         }
         
-        /* 突破手机限制的启动遮罩层 */
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85); z-index: 999;
@@ -55,7 +53,6 @@
     </style>
 </head>
 <body>
-    <!-- 启动点击界面 (必须要有这个点击动作手机才会授权) -->
     <div id="start-screen">
         <h1 style="color: #ffc0cb; margin-bottom: 30px; text-align: center;">Jing Yarong 的专属星空</h1>
         <button id="start-btn">点击开启魔法</button>
@@ -72,7 +69,6 @@
     <video class="input_video" playsinline webkit-playsinline></video>
     <div id="container"></div>
 
-    <!-- 替换为更稳定的 unpkg 节点 -->
     <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
     <script src="https://unpkg.com/@tweenjs/tween.js@18.6.4/dist/tween.umd.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/renderers/CSS3DRenderer.js"></script>
@@ -80,11 +76,10 @@
     <script src="https://unpkg.com/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
     <script>
-        // 1. 照片数据
         const photoData = [];
         const totalPhotos = 40; 
         for (let i = 1; i <= totalPhotos; i++) {
-            // 如果你的照片用括号命名了，改为：photoData.push(`./photos/p (${i}).jpg`);
+            // 如果你电脑上的照片带有括号，记得把这里改回：`./photos/p (${i}).jpg`
             photoData.push(`./photos/${i}.jpg`);
         }
 
@@ -94,13 +89,12 @@
         const targets = { sphere: [], helix: [] }; 
         let currentLayout = 'sphere'; 
 
-        // 页面一加载就渲染 3D 场景（此时不调摄像头）
         init3D();
         animate();
 
         function init3D() {
             camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
-            camera.position.z = 2000; // 适配手机，把相机往前拉一点
+            camera.position.z = 2000; 
             scene = new THREE.Scene();
 
             for (let i = 0; i < photoData.length; i++) {
@@ -108,7 +102,6 @@
                 element.className = 'photo-card';
                 const img = document.createElement('img');
                 img.src = photoData[i];
-                // 防报错：如果图片没找到，显示一个粉色渐变块
                 img.onerror = function() { this.style.display = 'none'; element.style.background = 'linear-gradient(#441122, #111)'; };
                 element.appendChild(img);
 
@@ -128,7 +121,10 @@
                 const yHelix = -(photoData.length * 15) + (i * 30);
                 const objectHelix = new THREE.Object3D();
                 objectHelix.position.setFromCylindricalCoords(600, thetaHelix, yHelix);
-                objectHelix.lookAt(new THREE.Vector3D(objectHelix.position.x * 2, objectHelix.position.y, objectHelix.position.z * 2));
+                
+                // 【修复了这里的 Bug】：把 Vector3D 改成了正确的 Vector3
+                objectHelix.lookAt(new THREE.Vector3(objectHelix.position.x * 2, objectHelix.position.y, objectHelix.position.z * 2));
+                
                 targets.helix.push(objectHelix);
             }
 
@@ -164,9 +160,6 @@
             setTimeout(() => { isAnimating = false; }, duration * 2);
         }
 
-        // ==========================================
-        // 必须由按钮点击触发的摄像头与 AI 逻辑
-        // ==========================================
         const startBtn = document.getElementById('start-btn');
         const startScreen = document.getElementById('start-screen');
         const errorMsg = document.getElementById('error-msg');
@@ -179,11 +172,10 @@
 
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
                 .then(function(stream) {
-                    startScreen.style.display = 'none'; // 隐藏遮罩层
+                    startScreen.style.display = 'none';
                     statusText.innerText = "✅ 摄像头已开启，正在启动 AI...";
                     videoElement.srcObject = stream;
                     
-                    // 注意这里的底层模型下载节点也换成了 unpkg
                     const hands = new Hands({locateFile: (file) => `https://unpkg.com/@mediapipe/hands/${file}`});
                     hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.6 });
 
@@ -195,7 +187,6 @@
                         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                             const landmarks = results.multiHandLandmarks[0];
                             
-                            // 手机竖屏时，X 和 Y 轴映射可能需要微调
                             targetRotationY = (landmarks[9].x - 0.5) * Math.PI * 1.5; 
                             targetRotationX = (landmarks[9].y - 0.5) * Math.PI * 1.5;
 
@@ -236,7 +227,7 @@
                 .catch(function(err) {
                     startBtn.innerText = "重新尝试";
                     startBtn.disabled = false;
-                    errorMsg.innerText = "❌ 权限被拒绝或加载超时。\n请在微信右上角选择“在系统浏览器中打开”，或检查是否给了摄像头权限。";
+                    errorMsg.innerText = "❌ 权限被拒绝或加载超时。\n请在微信右上角选择“在浏览器中打开”，或检查摄像头权限。";
                 });
         });
 
